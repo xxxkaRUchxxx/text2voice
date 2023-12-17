@@ -1,3 +1,4 @@
+import os
 import telebot
 import key
 import text
@@ -14,7 +15,19 @@ def start_mes(message):
         bot.send_message(message.chat.id, text.start.format(message.from_user.first_name, data[0], data[1]))
 
 
-
-
+@bot.message_handler(content_types=['voice'])
+def voice_process(message):
+    name = message.voice.file_id
+    info = bot.get_file(name)
+    path = info.file_path
+    download = bot.download_file(path)
+    save_path = 'voices'
+    os.makedirs(save_path, exist_ok=True)
+    file_name = os.path.join(save_path, f'{name}.ogg')
+    with open(file_name, 'wb') as new_file:
+        new_file.write(download)
+    bot.send_message(message.chat.id, "Голосовое сообщение в обработке")
+    result = func.voice_rec(file_name)
+    bot.edit_message_text(message.messsage_id + 1, message.chat.id, result)
 
 bot.polling(none_stop=True)

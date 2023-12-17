@@ -2,13 +2,17 @@ from telebot import types
 import sqlite3
 import key
 import datetime
+import os
+from google.cloud import speech_v1p1beta1 as speech
+
+
 
 '''
 users: id, count_v, balance, username, reg_time
 orders: order, id, count, pay_id, order_time
 '''
 
-time_now = lambda: datetime.datetime.now().strftime('%Y.%M.%d %H:%M:%S')
+time_now = lambda: datetime.datetime.now().strftime('%Y.%M.%d %H:%M')
 
 
 def first_join(message):
@@ -30,3 +34,26 @@ def first_join(message):
         print("first_join", e)
     finally:
         conn.close()
+
+def voice_rec(file_name):
+    client = speech.SpeechClient(credentials=key.google_api)
+    with open(file_name, "rb") as audio_file:
+        content = audio_file.read()
+
+    audio = speech.RecognitionAudio(content=content)
+    config = speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.OGG_OPUS,
+        sample_rate_hertz=16000,
+        language_code="ru-RU",  # Замените на нужный язык, если это не русский
+    )
+
+    response = client.recognize(config=config, audio=audio)
+
+    # Извлечение текста из ответа и отправка его в чат
+    for result in response.results:
+        recognized_text = result.alternatives[0].transcript
+        return recognized_text
+
+
+
+
