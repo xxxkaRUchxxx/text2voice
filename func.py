@@ -3,8 +3,10 @@ import sqlite3
 import key
 import datetime
 import os
-from google.cloud import speech_v1p1beta1 as speech
-
+import json
+from vosk import Model, KaldiRecognizer
+import soundfile as sf
+import wave
 
 
 '''
@@ -36,24 +38,17 @@ def first_join(message):
         conn.close()
 
 def voice_rec(file_name):
-    client = speech.SpeechClient(credentials=key.google_api)
-    with open(file_name, "rb") as audio_file:
-        content = audio_file.read()
-
-    audio = speech.RecognitionAudio(content=content)
-    config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.OGG_OPUS,
-        sample_rate_hertz=16000,
-        language_code="ru-RU",  # Замените на нужный язык, если это не русский
-    )
-
-    response = client.recognize(config=config, audio=audio)
-
-    # Извлечение текста из ответа и отправка его в чат
-    for result in response.results:
-        recognized_text = result.alternatives[0].transcript
-        return recognized_text
-
+    data, samplerate = sf.read(f'{file_name}')
+    name = file_name.split('.')[0]
+    sf.write(f'{name}.wav', data, samplerate)
+    model = Model('small_model')
+    rec = KaldiRecognizer(model, 48000)
+    with wave.open(f'{name}.wav', 'rb') as golos:
+        golos_info = golos.readframes(golos.getnframes())
+        if rec.AcceptWaveform(golos_info):
+            answer = rec.Result()
+            print(answer)
+            return answer['text']
 
 
 
