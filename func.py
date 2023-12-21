@@ -7,6 +7,7 @@ import json
 from vosk import Model, KaldiRecognizer
 import soundfile as sf
 import wave
+import shutil
 
 
 '''
@@ -38,17 +39,9 @@ def first_join(message):
         conn.close()
 
 def voice_rec(file_name):
-    data, samplerate = sf.read(f'{file_name}')
-    name = file_name.split('.')[0]
-    sf.write(f'{name}.wav', data, samplerate)
-    model = Model('small_model')
-    rec = KaldiRecognizer(model, 48000)
-    with wave.open(f'{name}.wav', 'rb') as golos:
-        golos_info = golos.readframes(golos.getnframes())
-        if rec.AcceptWaveform(golos_info):
-            answer = rec.Result()
-            print(answer)
-            return answer['text']
-
-
-
+    data, samplerate = sf.read(f'voices/{file_name}.ogg')
+    sf.write(f'voices/{file_name}.ogg', data, samplerate)
+    os.system(f'whisper {file_name}.ogg -o voices -f txt')
+    with open(f'voices/{file_name}.txt', 'r') as file:
+        text = file.read()
+        print(text)

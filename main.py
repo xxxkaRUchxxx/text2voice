@@ -27,8 +27,7 @@ def voice_process(message):
     with open(file_name, 'wb') as new_file:
         new_file.write(download)
     bot.send_message(message.chat.id, "Голосовое сообщение в обработке")
-    print(message)
-    result = func.voice_rec(file_name)
-    bot.send_message(message.chat.id, result)
+    result = func.voice_rec(name)
+    # bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=result)
 
 bot.polling(none_stop=True)
