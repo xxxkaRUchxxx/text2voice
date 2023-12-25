@@ -1,14 +1,8 @@
-from telebot import types
 import sqlite3
 import key
 import datetime
+import whisper
 import os
-import json
-from vosk import Model, KaldiRecognizer
-import soundfile as sf
-import wave
-import shutil
-
 
 '''
 users: id, count_v, balance, username, reg_time
@@ -39,9 +33,11 @@ def first_join(message):
         conn.close()
 
 def voice_rec(file_name):
-    data, samplerate = sf.read(f'voices/{file_name}.ogg')
-    sf.write(f'voices/{file_name}.ogg', data, samplerate)
-    os.system(f'whisper {file_name}.ogg -o voices -f txt')
-    with open(f'voices/{file_name}.txt', 'r') as file:
-        text = file.read()
-        print(text)
+    model = whisper.load_model("base")
+    audio = whisper.load_audio(f'voices/{file_name}.ogg')
+    audio = whisper.pad_or_trim(audio)
+    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+    options = whisper.DecodingOptions(language='ru')
+    result = whisper.decode(model, mel, options)
+    os.remove(f'voices/{file_name}.ogg')
+    return result.text

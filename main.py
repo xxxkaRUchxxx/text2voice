@@ -3,6 +3,7 @@ import telebot
 import key
 import text
 import func
+import time
 
 
 bot = telebot.TeleBot(key.tg_token, parse_mode='html')
@@ -23,11 +24,10 @@ def voice_process(message):
     download = bot.download_file(path)
     save_path = 'voices'
     os.makedirs(save_path, exist_ok=True)
-    file_name = os.path.join(save_path, f'{name}.ogg')
-    with open(file_name, 'wb') as new_file:
+    file_name = os.path.join(save_path, f'{name}')
+    with open(f'{file_name}.ogg', 'wb') as new_file:
         new_file.write(download)
+    time.sleep(2)
     bot.send_message(message.chat.id, "Голосовое сообщение в обработке")
     result = func.voice_rec(name)
-    # bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=result)
-
-bot.polling(none_stop=True)
+    bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id + 1, text=result)
